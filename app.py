@@ -1,9 +1,12 @@
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
+from database_utils import get_products_by_category
 
 load_dotenv()
 
@@ -13,9 +16,9 @@ line_bot_api = LineBotApi(os.environ["ACCESS_TOKEN"])
 handler = WebhookHandler(os.environ["CHANNEL_SECRET"])
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    return 'You call index()'
+    return "You call index()"
 
 
 @app.route("/push_sample")
@@ -43,11 +46,24 @@ def callback():
 
 
 @handler.add(MessageEvent, message=TextMessage)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    line_bot_api.reply_message(event.reply_token,
-                               TextSendMessage(text=event.message.text))
+    received_msg = event.message.text
+    products = get_products_by_category(received_msg)
+
+    if products:
+        reply_msg = "\n".join([f"{product[0]}: {product[1]}円" for product in products])
+    else:
+        reply_msg = "該当する商品が見つかりませんでした。"
+
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+
+
+log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
+log_handler.setLevel(logging.INFO)
+app.logger.addHandler(log_handler)
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.getenv("PORT", 5001))
+    app.run(host="0.0.0.0", port=port, debug=True)
