@@ -54,15 +54,15 @@ def handle_message(event):
         reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products])
     else:
         reply_msg = "該当する商品が見つかりませんでした。"
-
-def select_message(received_msg):
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+def sele_message(received_msg):
     products = get_products_by_partial_category(received_msg)
     
     if any(product[0] == received_msg for product in products):
         return f"いくつの{received_msg}を購入しますか？"
     else:
         return "製品が見つかりませんでした。"
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+
 
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
