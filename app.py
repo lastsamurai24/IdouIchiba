@@ -51,7 +51,7 @@ def handle_message(event):
     products = get_products_by_category(received_msg)
 
     if products:
-        reply_msg = "\n".join([f"{product[0]}: {product[1]}円" for product in products])
+        reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products])
     else:
         reply_msg = "該当する商品が見つかりませんでした。"
 
