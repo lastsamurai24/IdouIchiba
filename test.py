@@ -1,14 +1,16 @@
 from database_utils import get_products_by_category
-
+from database_utils import get_products_by_category
+from database_utils import get_products_by_partial_category
 
 def main():
-    received_msg = "納豆"
-    products = get_products_by_category(received_msg)
-
-    if products:
-        reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products])
+    received_msg = "納豆の極み"
+    products = get_products_by_partial_category(received_msg)
+    
+    # If there's an exact match in the products list
+    if any(product[0] == received_msg for product in products):
+        reply_msg = f"いくつ{received_msg}を買いますか？"
     else:
-        reply_msg = "該当する商品が見つかりませんでした。"
+        reply_msg = "製品が見つかりませんでした。"
 
     print(reply_msg)
 

@@ -46,24 +46,20 @@ def callback():
 
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
+def handle_message_combined(event):
     received_msg = event.message.text
+    
+    # First, perform the original handle_message process
     products = get_products_by_category(received_msg)
-
     if products:
         reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products])
     else:
-        reply_msg = "該当する商品が見つかりませんでした。"
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-def sele_message(received_msg):
-    products = get_products_by_partial_category(received_msg)
-    
-    if any(product[0] == received_msg for product in products):
-        return f"いくつの{received_msg}を購入しますか？"
-    else:
-        return "製品が見つかりませんでした。"
-
-
+        # If no products found with the original method, try handle_message_updated process
+        exact_products = get_products_by_partial_category(received_msg)
+        if any(product[0] == received_msg for product in exact_products):
+            reply_msg = f"いくつ{received_msg}を買いますか？"
+        else:
+            reply_msg = "製品が見つかりませんでした。"
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
 log_handler.setLevel(logging.INFO)
@@ -73,3 +69,4 @@ app.logger.addHandler(log_handler)
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+    
