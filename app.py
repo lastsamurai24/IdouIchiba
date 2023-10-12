@@ -46,7 +46,6 @@ def callback():
 
 
 @handler.add(MessageEvent, message=TextMessage)
-@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     received_msg = event.message.text
     products = get_products_by_category(received_msg)
@@ -65,5 +64,5 @@ app.logger.addHandler(log_handler)
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5001))
+    port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)

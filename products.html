@@ -1,0 +1,18 @@
+Copy code
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品一覧</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>商品一覧</h1>
+    <ul>
+    {% for product in products %}
+        <li><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a> - {{ product.price }}円</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

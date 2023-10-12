@@ -10,6 +10,7 @@ charset-normalizer==3.3.0
 click==8.1.7
 Deprecated==1.2.14
 Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
 frozenlist==1.4.0
 future==0.18.3
 gunicorn==21.2.0
@@ -26,6 +27,7 @@ python-dateutil==2.8.2
 python-dotenv==1.0.0
 requests==2.31.0
 six==1.16.0
+SQLAlchemy==2.0.21
 typing_extensions==4.8.0
 urllib3==2.0.6
 Werkzeug==3.0.0

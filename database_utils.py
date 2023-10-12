@@ -1,6 +1,6 @@
 import sqlite3
 
-DATABASE_PATH = 'path_to_your_database.db'
+DATABASE_PATH = 'mydatabase.db'
 
 def get_products_by_category(category):
     conn = sqlite3.connect(DATABASE_PATH)
