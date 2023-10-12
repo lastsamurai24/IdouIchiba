@@ -7,7 +7,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
 from database_utils import get_products_by_category
-
+from database_utils import get_products_by_partial_category
 load_dotenv()
 
 app = Flask(__name__)
@@ -55,6 +55,13 @@ def handle_message(event):
     else:
         reply_msg = "該当する商品が見つかりませんでした。"
 
+def select_message(received_msg):
+    products = get_products_by_partial_category(received_msg)
+    
+    if any(product[0] == received_msg for product in products):
+        return f"いくつの{received_msg}を購入しますか？"
+    else:
+        return "製品が見つかりませんでした。"
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 
