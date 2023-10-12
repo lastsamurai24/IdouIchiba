@@ -10,10 +10,10 @@ def get_products_by_category(category):
     conn.close()
     return products
 
-def get_products_by_partial_category(category):
+def get_products_by_partial_category(product_name):
     conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT product_name, price FROM products WHERE category LIKE ?", ('%' + category + '%',))
+    cursor.execute("SELECT product_name, price FROM products WHERE product_name LIKE ?", ('%' + product_name + '%',))
     products = cursor.fetchall()
     conn.close()
     return products
