@@ -17,6 +17,8 @@ from linebot.models import (
     PostbackAction,
     URIAction,
 )
+from linebot.models import FlexSendMessage
+from database_utils import get_product_price_by_name
 
 load_dotenv()
 
@@ -82,6 +84,8 @@ def handle_message_combined(event):
         line_bot_api.reply_message(event.reply_token, reply)
     else:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply.text))
+
+
 def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(
@@ -100,6 +104,56 @@ def handle_quantity_message(event, quantity, received_msg):
 
     # テンプレートメッセージを返す
     line_bot_api.reply_message(event.reply_token, template_message)
+
+
+# Pseudo code to demonstrate the process
+
+
+def handle_buy_action(event, product_name, quantity):
+    # 1. Display Confirmation Screen using Flex Message
+    product_price = get_product_price_by_name(product_name)
+    total_price = product_price * quantity
+
+    # Create a Flex Message content for the confirmation screen
+    flex_content = {
+        "type": "bubble",
+        "header": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [{"type": "text", "text": "購入確認", "weight": "bold", "size": "xl"}],
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {"type": "text", "text": f"商品名: {product_name}"},
+                {"type": "text", "text": f"数量: {quantity}つ"},
+                {"type": "text", "text": f"合計: {total_price}円"},
+            ],
+        },
+        "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {"type": "postback", "label": "支払う", "data": "action=pay"},
+                    "style": "primary",
+                }
+            ],
+        },
+    }
+
+    flex_message = FlexSendMessage(alt_text="購入確認", contents=flex_content)
+
+    # Send the Flex Message
+    line_bot_api.reply_message(event.reply_token, flex_message)
+
+    # 2. If user clicks on the payment button (in this case, the "支払う" button),
+    #    the postback data "action=pay" will be sent, which you can handle in another function.
+
+
+# This is just a demonstration. The actual integration will need more considerations and details.
 
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
