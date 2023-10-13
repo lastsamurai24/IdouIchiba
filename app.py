@@ -95,7 +95,7 @@ def handle_quantity_message(event, quantity, received_msg):
         actions=[
             PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
             PostbackAction(label="カートにいれる", data=f"action=add&quantity={quantity}"),
-            URIAction(label="商品の詳細", uri="http://example.com/page/123"),
+            URIAction(label="商品の詳細", uri="http://127.0.0.1:5000/supermarket"),
         ],
     )
 
