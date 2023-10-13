@@ -74,16 +74,16 @@ def handle_message_combined(event):
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 
-def handle_quantity_message(event, quantity):
+def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(
         thumbnail_image_url="https://example.com/bot/images/image.jpg",
         title="Menu",
-        text=f"{quantity}つでよろしいでしょうか？",
+        text=f"{received_msg}は{quantity}つでよろしいでしょうか？",
         actions=[
-            PostbackAction(label="Buy", data=f"action=buy&quantity={quantity}"),
-            PostbackAction(label="Add to cart", data=f"action=add&quantity={quantity}"),
-            URIAction(label="View detail", uri="http://example.com/page/123")
+            PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
+            PostbackAction(label="カートに追加", data=f"action=add&quantity={quantity}"),
+            URIAction(label="商品の詳細", uri="http://10.30.46.143:5000/supermarket")
         ]
     )
 
