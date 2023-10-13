@@ -73,8 +73,8 @@ def handle_message_combined(event):
 
 
 def handle_quantity_message(event, quantity):
-    # This is just a mock. You'll need to fetch product details and calculate the total price.
-    return f"Mocked response for quantity {quantity}"
+   
+    return f"{quantity}でよろしいでしょうか？"
 
 
 
