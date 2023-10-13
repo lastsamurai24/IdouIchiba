@@ -27,15 +27,14 @@ import sqlite3
 
 
 def get_product_price_by_name(product_name):
-    # Connect to the database
+    
     conn = sqlite3.connect("mydatabase.db")  # Adjust the path if necessary
     cursor = conn.cursor()
 
-    # Fetch the price of the product based on product_name
     cursor.execute("SELECT price FROM products WHERE product_name=?", (product_name,))
     price = cursor.fetchone()
 
-    # Close the connection
+    
     conn.close()
 
     if price:
@@ -44,4 +43,4 @@ def get_product_price_by_name(product_name):
         return None
 
 
-# This function should be added to database_utils.py
+

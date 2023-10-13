@@ -95,7 +95,7 @@ def handle_quantity_message(event, quantity, received_msg):
         actions=[
             PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
             PostbackAction(label="カートにいれる", data=f"action=add&quantity={quantity}"),
-            URIAction(label="商品の詳細", uri="https://supermarket.onrender.com"),
+            URIAction(label="商品の詳細", uri="https://idouichiba.onrender.com"),
         ],
     )
 
