@@ -8,7 +8,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
 from database_utils import get_products_by_category
 from database_utils import get_products_by_partial_category
-from linebot.models import TemplateSendMessage, CarouselTemplate, CarouselColumn
+from linebot.models import ConfirmTemplate, TemplateSendMessage
 load_dotenv()
 
 app = Flask(__name__)
@@ -73,8 +73,19 @@ def handle_message_combined(event):
 
 
 def handle_quantity_message(event, quantity):
-   
-    return f"{quantity}でよろしいでしょうか？"
+    confirm_template = ConfirmTemplate(
+        text=f"{quantity}でよろしいでしょうか？",
+        actions=[
+            {"type": "message", "label": "Yes", "text": "yes"},
+            {"type": "message", "label": "No", "text": "no"}
+        ]
+    )
+    template_message = TemplateSendMessage(
+        alt_text=f"{quantity}でよろしいでしょうか？",
+        template=confirm_template
+    )
+    line_bot_api.reply_message(event.reply_token, template_message)
+
 
 
 
