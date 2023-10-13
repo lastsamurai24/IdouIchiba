@@ -8,6 +8,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
 from database_utils import get_products_by_category
 from database_utils import get_products_by_partial_category
+from linebot.models import TemplateSendMessage, CarouselTemplate, CarouselColumn
 load_dotenv()
 
 app = Flask(__name__)
@@ -46,27 +47,35 @@ def callback():
 
 
 @handler.add(MessageEvent, message=TextMessage)
+
+
 def handle_message_combined(event):
     received_msg = event.message.text
     
-    # First, perform the original handle_message process
-    products_by_category = get_products_by_category(received_msg)
-    
-    if products_by_category:
-        reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products_by_category])
+    if received_msg.isdigit():
+        reply_msg = handle_quantity_message(event, int(received_msg))
     else:
-        # If no products found with the original method, try handle_message_updated process
-        products_by_exact_name = get_products_by_partial_category(received_msg)
-        if any(product[0] == received_msg for product in products_by_exact_name):
-            reply_msg = f"いくつ{received_msg}を買いますか？"
+        
+        products_by_category = get_products_by_category(received_msg)
+        
+        if products_by_category:
+            reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products_by_category])
         else:
-            reply_msg = "製品が見つかりませんでした。"
+           
+            products_by_exact_name = get_products_by_partial_category(received_msg)
+            if any(product[0] == received_msg for product in products_by_exact_name):
+                reply_msg = f"いくつ{received_msg}を買いますか？"
+            else:
+                reply_msg = "製品が見つかりませんでした。"
     
-    # Send the reply message
+
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
-# Displaying the combined function for reference
-handle_message_combined
+
+def handle_quantity_message(event, quantity):
+    # This is just a mock. You'll need to fetch product details and calculate the total price.
+    return f"Mocked response for quantity {quantity}"
+
 
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
