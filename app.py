@@ -95,7 +95,7 @@ def handle_quantity_message(event, quantity, received_msg):
         actions=[
             PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
             PostbackAction(label="カートにいれる", data=f"action=add&quantity={quantity}"),
-            URIAction(label="商品の詳細", uri="https://127.0.0.1:5000/supermarket.onrender.com"),
+            URIAction(label="商品の詳細", uri="https://supermarket.onrender.com"),
         ],
     )
 
@@ -106,15 +106,10 @@ def handle_quantity_message(event, quantity, received_msg):
     line_bot_api.reply_message(event.reply_token, template_message)
 
 
-# Pseudo code to demonstrate the process
-
-
 def handle_buy_action(event, product_name, quantity):
-    # 1. Display Confirmation Screen using Flex Message
     product_price = get_product_price_by_name(product_name)
     total_price = product_price * quantity
 
-    # Create a Flex Message content for the confirmation screen
     flex_content = {
         "type": "bubble",
         "header": {
@@ -146,14 +141,7 @@ def handle_buy_action(event, product_name, quantity):
 
     flex_message = FlexSendMessage(alt_text="購入確認", contents=flex_content)
 
-    # Send the Flex Message
     line_bot_api.reply_message(event.reply_token, flex_message)
-
-    # 2. If user clicks on the payment button (in this case, the "支払う" button),
-    #    the postback data "action=pay" will be sent, which you can handle in another function.
-
-
-# This is just a demonstration. The actual integration will need more considerations and details.
 
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
