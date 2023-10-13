@@ -79,10 +79,10 @@ def handle_quantity_message(event, quantity, received_msg):
     buttons_template = ButtonsTemplate(
         thumbnail_image_url="https://example.com/bot/images/image.jpg",
         title="Menu",
-        text=f"{received_msg}は{quantity}つでよろしいでしょうか？",
+        text=f"{received_msg}を{quantity}つでよろしいでしょうか？",
         actions=[
             PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
-            PostbackAction(label="カートに追加", data=f"action=add&quantity={quantity}"),
+            PostbackAction(label="カートにいれる", data=f"action=add&quantity={quantity}"),
             URIAction(label="商品の詳細", uri="http://example.com/page/123")
         ]
     )
