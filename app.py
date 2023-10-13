@@ -8,7 +8,9 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
 from database_utils import get_products_by_category
 from database_utils import get_products_by_partial_category
-from linebot.models import ConfirmTemplate, TemplateSendMessage
+from linebot.models import (MessageEvent, TextMessage, TextSendMessage,
+                            ButtonsTemplate, TemplateSendMessage, PostbackAction, URIAction)
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -73,19 +75,26 @@ def handle_message_combined(event):
 
 
 def handle_quantity_message(event, quantity):
-    confirm_template = ConfirmTemplate(
-        text=f"{quantity}でよろしいでしょうか？",
+    # ボタンテンプレートの作成
+    buttons_template = ButtonsTemplate(
+        thumbnail_image_url="https://example.com/bot/images/image.jpg",
+        title="Menu",
+        text=f"{quantity}つでよろしいでしょうか？",
         actions=[
-            {"type": "message", "label": "Yes", "text": "yes"},
-            {"type": "message", "label": "No", "text": "no"}
+            PostbackAction(label="Buy", data=f"action=buy&quantity={quantity}"),
+            PostbackAction(label="Add to cart", data=f"action=add&quantity={quantity}"),
+            URIAction(label="View detail", uri="http://example.com/page/123")
         ]
     )
+
+    # テンプレートメッセージの作成
     template_message = TemplateSendMessage(
         alt_text=f"{quantity}でよろしいでしょうか？",
-        template=confirm_template
+        template=buttons_template
     )
-    line_bot_api.reply_message(event.reply_token, template_message)
 
+    # テンプレートメッセージを返す
+    line_bot_api.reply_message(event.reply_token, template_message)
 
 
 
