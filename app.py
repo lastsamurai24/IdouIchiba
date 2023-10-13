@@ -55,7 +55,8 @@ def handle_message_combined(event):
     received_msg = event.message.text
     
     if received_msg.isdigit():
-        reply_msg = handle_quantity_message(event, int(received_msg))
+        # handle_quantity_message関数を呼び出す際に、received_msg引数を追加
+        reply_msg = handle_quantity_message(event, int(received_msg), received_msg)
     else:
         
         products_by_category = get_products_by_category(received_msg)
