@@ -146,7 +146,7 @@ def get_cart_total_price(user_id):
     for product_name, quantity in cart.items():
         product_price = get_product_price_by_name(product_name)
         if product_price is not None:
-            total_price = product_price * quantity
+            total_price += product_price * quantity
         else:
             app.logger.warning(f"Price not found for product: {product_name}")
     return total_price
