@@ -131,25 +131,46 @@ def get_cart_contents(user_id):
     return user_carts.get(user_id, {})
 
 
+# 既存のカートデータ構造
+# user_carts = {}
+
+def get_cart_total_price(user_id):
+    """カートの合計金額を計算する関数"""
+    cart = user_carts.get(user_id, {})
+    total_price = 0
+    for product_name, quantity in cart.items():
+        product_price = get_product_price_by_name(product_name)
+        if product_price:
+            total_price += product_price * quantity
+    return total_price
+
 @handler.add(PostbackEvent)
 def handle_postback(event):
     data = event.postback.data
-    params = dict([item.split("=") for item in data.split("&")])
+    params = dict([item.split('=') for item in data.split('&')])
     user_id = event.source.user_id
 
-    action = params.get("action")
-    quantity = int(params.get("quantity", 1))
+    action = params.get('action')
+    quantity = int(params.get('quantity', 1))
     product_name = last_received_message.get(user_id, "")
 
-    if action == "buy":
-        handle_buy_action(event, product_name, quantity)
-    elif action == "add":
-        add_to_cart(user_id, product_name, quantity)
+    if action == 'buy':
+        # カートの中身を取得
         cart_contents = get_cart_contents(user_id)
-        cart_msg = "\n".join([f"{product}: {qty}" for product, qty in cart_contents.items()])
-        reply_msg = f"{product_name}を{quantity}つカートに追加しました。\n\nカートの中身:\n{cart_msg}"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+        if not cart_contents:
+            reply_msg = "カートが空です。"
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+            return
 
+        # 購入確認メッセージを作成
+        cart_msg = "\n".join([f"{product}: {qty}つ" for product, qty in cart_contents.items()])
+        total_price = get_cart_total_price(user_id)
+        confirm_msg = f"購入内容:\n{cart_msg}\n\n合計: {total_price}円"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=confirm_msg))
+    elif action == 'add':
+        add_to_cart(user_id, product_name, quantity)
+        reply_msg = f"{product_name}を{quantity}つカートに追加しました。"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 def handle_buy_action(event, product_name, quantity):
     product_price = get_product_price_by_name(product_name)
