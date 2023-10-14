@@ -153,6 +153,13 @@ def get_cart_total_price(user_id):
 
 
 @handler.add(PostbackEvent)
+
+# LINE Pay integration
+
+def process_payment(user_id):
+    # ここでLINE PayのリクエストAPIを呼び出して、トランザクションを開始します
+    # このデモでは、実際のAPI呼び出しは行っていません
+    return True
 def handle_postback(event):
     data = event.postback.data
     params = dict([item.split("=") for item in data.split("&")])
@@ -168,6 +175,17 @@ def handle_postback(event):
         handle_add_action(event, user_id, quantity, product_name)
     elif action == "view_cart":
         handle_view_cart(event, user_id)
+    elif action == "pay":
+        # 決済処理を開始
+        is_successful = process_payment(user_id)
+        
+        if is_successful:
+            reply_message = "決済が成功しました！ありがとうございます。"
+        else:
+            reply_message = "申し訳ございません、決済に問題が発生しました。もう一度お試しいただくか、サポートにお問い合わせください。"
+        
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
 
 def handle_view_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
