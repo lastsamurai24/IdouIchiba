@@ -104,17 +104,17 @@ def handle_quantity_message(event, quantity, received_msg):
 
     # テンプレートメッセージを返す
     line_bot_api.reply_message(event.reply_token, template_message)
-
+last_received_message = {}
+@handler.add(PostbackEvent)
 def handle_postback(event):
     data = event.postback.data
     params = dict([item.split('=') for item in data.split('&')])
+    user_id = event.source.user_id
 
     action = params.get('action')
     quantity = int(params.get('quantity', 1))
 
-    # ここで、前回のメッセージ（商品名）を取得するロジックが必要です。
-    # 例えば、セッションやデータベースを使用して前回のメッセージを保存しておくなどの方法が考えられます。
-    product_name = "前回のメッセージを取得するロジック"
+    product_name = last_received_message.get(user_id, "")
 
     if action == 'buy':
         handle_buy_action(event, product_name, quantity)
