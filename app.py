@@ -122,8 +122,13 @@ def handle_postback(event):
 
 def handle_buy_action(event, product_name, quantity):
     product_price = get_product_price_by_name(product_name)
-    total_price = product_price * quantity
+    
+    if product_price is None:
+        app.logger.error(f"Failed to get price for product: {product_name}")
+        # ここでユーザーにエラーメッセージを返すなどの処理を追加することもできます。
+        return
 
+    total_price = product_price * quantity
     flex_content = {
         "type": "bubble",
         "header": {
