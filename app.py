@@ -163,19 +163,20 @@ def handle_postback(event):
     if action == "buy":
         handle_buy_action(event, product_name, quantity)
     elif action == "add":
-        add_to_cart(user_id, product_name, quantity)
-        reply_msg = f"{product_name}を{quantity}つカートに追加しました。"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+        handle_add_action(event, user_id, quantity, product_name)
     elif action == "view_cart":
-        cart_contents = get_cart_contents(user_id)
-        if not cart_contents:
-            reply_msg = "カートが空です。"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-        else:
-            cart_items = [{"type": "text", "text": f"{product}: {qty}つ"} for product, qty in cart_contents.items()]
-            total_price = get_cart_total_price(user_id)
+        handle_view_cart(event, user_id)
+
+def handle_view_cart(event, user_id):
+    cart_contents = get_cart_contents(user_id)
+    if not cart_contents:
+        reply_msg = "カートが空です。"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+    else:
+        cart_items = [{"type": "text", "text": f"{product}: {qty}つ"} for product, qty in cart_contents.items()]
+        total_price = get_cart_total_price(user_id)
         
-            flex_content = {
+        flex_content = {
                 "type": "bubble",
                 "header": {
                     "type": "box",
@@ -189,8 +190,13 @@ def handle_postback(event):
          }  
         }
         
-            flex_message = FlexSendMessage(alt_text="カートの中身", contents=flex_content)
-            line_bot_api.reply_message(event.reply_token, flex_message)
+        flex_message = FlexSendMessage(alt_text="カートの中身", contents=flex_content)
+        line_bot_api.reply_message(event.reply_token, flex_message)
+
+def handle_add_action(event, user_id, quantity, product_name):
+    add_to_cart(user_id, product_name, quantity)
+    reply_msg = f"{product_name}を{quantity}つカートに追加しました。"
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 
 
