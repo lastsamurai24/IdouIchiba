@@ -111,62 +111,9 @@ def handle_quantity_message(event, quantity, received_msg):
     # テンプレートメッセージを返す
     line_bot_api.reply_message(event.reply_token, template_message)
 last_received_message = {}
-@handler.add(PostbackEvent)
-def handle_postback(event):
-    data = event.postback.data
-    params = dict([item.split('=') for item in data.split('&')])
-    user_id = event.source.user_id
-
-    action = params.get('action')
-    quantity = int(params.get('quantity', 1))
-
-    product_name = last_received_message.get(user_id, "")
-
-    if action == 'buy':
-        handle_buy_action(event, product_name, quantity)
 
 
-def handle_buy_action(event, product_name, quantity):
-    product_price = get_product_price_by_name(product_name)
-    
-    if product_price is None:
-        app.logger.error(f"Failed to get price for product: {product_name}")
-        # ここでユーザーにエラーメッセージを返すなどの処理を追加することもできます。
-        return
 
-    total_price = product_price * quantity
-    flex_content = {
-        "type": "bubble",
-        "header": {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [{"type": "text", "text": "購入確認", "weight": "bold", "size": "xl"}],
-        },
-        "body": {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-                {"type": "text", "text": f"商品名: {product_name}"},
-                {"type": "text", "text": f"数量: {quantity}つ"},
-                {"type": "text", "text": f"合計: {total_price}円"},
-            ],
-        },
-        "footer": {
-            "type": "box",
-            "layout": "vertical",
-            "contents": [
-                {
-                    "type": "button",
-                    "action": {"type": "postback", "label": "支払う", "data": "action=pay"},
-                    "style": "primary",
-                }
-            ],
-        },
-    }
-
-    flex_message = FlexSendMessage(alt_text="購入確認", contents=flex_content)
-
-    line_bot_api.reply_message(event.reply_token, flex_message)
 
 
 log_handler = RotatingFileHandler("flask_app.log", maxBytes=10000, backupCount=3)
