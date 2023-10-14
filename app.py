@@ -135,7 +135,9 @@ def get_cart_contents(user_id):
 
 # 既存のカートデータ構造
 # user_carts = {}
-
+def get_user_cart(user_id):
+    """指定されたユーザーIDのカートの内容を返す関数"""
+    return user_carts.get(user_id, {})
 
 def get_cart_total_price(user_id):
     """カートの合計金額を計算する関数"""
