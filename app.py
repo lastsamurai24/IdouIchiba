@@ -82,6 +82,9 @@ def handle_message_combined(event):
             else:
                 reply_msg = "製品が見つかりませんでした。"
                 reply = TextSendMessage(text=reply_msg)
+
+    # 返信処理
+    line_bot_api.reply_message(event.reply_token, reply)
 def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(
