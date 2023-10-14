@@ -85,7 +85,13 @@ def handle_message_combined(event):
     else:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply.text))
 
-
+    app.logger.info(f"Reply object: {reply}")
+    if reply is None:
+        app.logger.error("Reply is None")
+        return
+    if not isinstance(reply, TextSendMessage):
+        app.logger.error(f"Reply is not a TextSendMessage object. It is: {type(reply)}")
+        return
 def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(
