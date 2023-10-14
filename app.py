@@ -1,5 +1,6 @@
 import os
 import logging
+import sqlite3
 from logging.handlers import RotatingFileHandler
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -115,18 +116,69 @@ def handle_quantity_message(event, quantity, received_msg):
 last_received_message = {}
 user_carts = {}
 
-
+DATABASE_NAME = "mydatabase.db"
 @handler.add(PostbackEvent)
 # カートを模倣する簡易的なデータ構造
+def add_to_cart(user_id, product_id, quantity):
+    """
+    ユーザーのカートにアイテムを追加する関数
+    """
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    # Check if the item already exists in the user's cart
+    cursor.execute("SELECT quantity FROM user_carts WHERE user_id=? AND product_id=?", (user_id, product_id))
+    existing_quantity = cursor.fetchone()
+
+    if existing_quantity:
+        # Update the quantity if the item already exists
+        new_quantity = existing_quantity[0] + quantity
+        cursor.execute("UPDATE user_carts SET quantity=? WHERE user_id=? AND product_id=?", (new_quantity, user_id, product_id))
+    else:
+        # Insert a new item if it doesn't exist
+        cursor.execute("INSERT INTO user_carts (user_id, product_id, quantity) VALUES (?, ?, ?)", (user_id, product_id, quantity))
+
+    conn.commit()
+    conn.close()
+
+def remove_from_cart(user_id, product_id):
+    """
+    ユーザーのカートからアイテムを削除する関数
+    """
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM user_carts WHERE user_id=? AND product_id=?", (user_id, product_id))
+
+    conn.commit()
+    conn.close()
 
 
-def add_to_cart(user_id, product_name, quantity):
-    """カートに商品を追加する関数"""
-    cart = user_carts.get(user_id, {})
-    cart[product_name] = cart.get(product_name, 0) + quantity
-    user_carts[user_id] = cart
-    app.logger.info(f"Updated cart for user {user_id}: {cart}")
+def update_cart_quantity(user_id, product_id, quantity):
+    """
+    ユーザーのカートのアイテムの数量を更新する関数
+    """
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
 
+    cursor.execute("UPDATE user_carts SET quantity=? WHERE user_id=? AND product_id=?", (quantity, user_id, product_id))
+
+    conn.commit()
+    conn.close()
+
+
+def get_user_cart_from_db(user_id):
+    """
+    ユーザーのカートの内容を取得する関数
+    """
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT product_id, quantity FROM user_carts WHERE user_id=?", (user_id,))
+    cart_items = cursor.fetchall()
+
+    conn.close()
+    return cart_items
 
 def get_cart_contents(user_id):
     """カートの中身を取得する関数"""
