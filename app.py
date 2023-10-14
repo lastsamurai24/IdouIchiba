@@ -4,10 +4,8 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from dotenv import load_dotenv
-from database_utils import get_products_by_category
-from database_utils import get_products_by_partial_category
+from database_utils import get_products_by_category, get_products_by_partial_category, get_product_price_by_name
 from linebot.models import (
     MessageEvent,
     TextMessage,
@@ -16,11 +14,14 @@ from linebot.models import (
     TemplateSendMessage,
     PostbackAction,
     URIAction,
+    FlexSendMessage,
+    PostbackEvent
 )
-from linebot.models import FlexSendMessage
-from database_utils import get_product_price_by_name
-from linebot.models import PostbackEvent
+
 load_dotenv()
+
+# ... [残りのコードは変更なし]
+
 
 app = Flask(__name__)
 
@@ -60,11 +61,11 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message_combined(event):
     received_msg = event.message.text
+    user_id = event.source.user_id
 
     if received_msg.isdigit():
-        # ここで、前回のメッセージ（商品名）を取得するロジックが必要です。
-        # 例えば、セッションやデータベースを使用して前回のメッセージを保存しておくなどの方法が考えられます。
-        previous_msg = "前回のメッセージを取得するロジック"
+        # 前回のメッセージを last_received_message 辞書から取得
+        previous_msg = last_received_message.get(user_id, "")
         reply = handle_quantity_message(event, int(received_msg), previous_msg)
     else:
         products_by_category = get_products_by_category(received_msg)
@@ -75,23 +76,12 @@ def handle_message_combined(event):
         else:
             products_by_exact_name = get_products_by_partial_category(received_msg)
             if any(product[0] == received_msg for product in products_by_exact_name):
-                # ここで、商品名をhandle_quantity_message関数に渡します。
+                # received_msg を last_received_message 辞書に保存
+                last_received_message[user_id] = received_msg
                 reply = handle_quantity_message(event, 1, received_msg)  # 1はデフォルトの数量として設定しています。
             else:
                 reply_msg = "製品が見つかりませんでした。"
                 reply = TextSendMessage(text=reply_msg)
-    if isinstance(reply, TemplateSendMessage):
-        line_bot_api.reply_message(event.reply_token, reply)
-    else:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply.text))
-
-    app.logger.info(f"Reply object: {reply}")
-    if reply is None:
-        app.logger.error("Reply is None")
-        return
-    if not isinstance(reply, TextSendMessage):
-        app.logger.error(f"Reply is not a TextSendMessage object. It is: {type(reply)}")
-        return
 def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(

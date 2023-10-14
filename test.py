@@ -37,10 +37,9 @@ def main(event, product_name, quantity):
     }
 
     flex_message = FlexSendMessage(alt_text="購入確認", contents=flex_content)
-    line_bot_api.reply_message(event.reply_token, flex_message)
+   
 
 
     print()
 
 if __name__ == '__main__':
-    main()
