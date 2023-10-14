@@ -100,6 +100,7 @@ def handle_quantity_message(event, quantity, received_msg):
         actions=[
             PostbackAction(label="買う", data=f"action=buy&quantity={quantity}"),
             PostbackAction(label="カートにいれる", data=f"action=add&quantity={quantity}"),
+            PostbackAction(label="カートを確認", data="action=view_cart"),
             URIAction(label="商品の詳細", uri="https://idouichiba.onrender.com"),
         ],
     )
@@ -108,7 +109,7 @@ def handle_quantity_message(event, quantity, received_msg):
     template_message = TemplateSendMessage(alt_text=f"{quantity}でよろしいでしょうか？", template=buttons_template)
 
     # テンプレートメッセージを返す
-    line_bot_api.reply_message(event.reply_token, template_message)
+    return template_message
 
 
 last_received_message = {}
@@ -145,6 +146,7 @@ def get_cart_total_price(user_id):
     return total_price
 
 @handler.add(PostbackEvent)
+@handler.add(PostbackEvent)
 def handle_postback(event):
     data = event.postback.data
     params = dict([item.split('=') for item in data.split('&')])
@@ -155,21 +157,19 @@ def handle_postback(event):
     product_name = last_received_message.get(user_id, "")
 
     if action == 'buy':
-        # カートの中身を取得
-        cart_contents = get_cart_contents(user_id)
-        if not cart_contents:
-            reply_msg = "カートが空です。"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-            return
-
-        # 購入確認メッセージを作成
-        cart_msg = "\n".join([f"{product}: {qty}つ" for product, qty in cart_contents.items()])
-        total_price = get_cart_total_price(user_id)
-        confirm_msg = f"購入内容:\n{cart_msg}\n\n合計: {total_price}円"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=confirm_msg))
+        handle_buy_action(event, product_name, quantity)
     elif action == 'add':
         add_to_cart(user_id, product_name, quantity)
         reply_msg = f"{product_name}を{quantity}つカートに追加しました。"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+    elif action == 'view_cart':
+        cart_contents = get_cart_contents(user_id)
+        if not cart_contents:
+            reply_msg = "カートが空です。"
+        else:
+            cart_msg = "\n".join([f"{product}: {qty}つ" for product, qty in cart_contents.items()])
+            total_price = get_cart_total_price(user_id)
+            reply_msg = f"カートの中身:\n{cart_msg}\n\n合計: {total_price}円"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 def handle_buy_action(event, product_name, quantity):
