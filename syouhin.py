@@ -18,7 +18,7 @@ def create_table():
         category TEXT NOT NULL,
         product_id TEXT NOT NULL,
         product_name TEXT NOT NULL,
-        price TEXT NOT NULL,
+        price INTEGER NOT NULL,
         stock INTEGER NOT NULL
     )
     """)
