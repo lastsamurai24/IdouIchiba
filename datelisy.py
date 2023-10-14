@@ -42,7 +42,7 @@ with open('products.csv', 'w', newline='', encoding='utf-8') as csvfile:
                 product_id += 1
                 price = random.randint(50, 1000)  # 50円から1000円の範囲で価格をランダムに設定
                 stock = random.randint(0, 100)  # 0から100の範囲で在庫数をランダムに設定
-                writer.writerow([category, str(product_id).zfill(4), product_name, f"{price}円", stock])
+                writer.writerow([category, str(product_id).zfill(4), product_name, price, stock])
 
 print("商品情報のCSVファイルが生成されました。")
 
