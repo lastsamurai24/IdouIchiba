@@ -141,7 +141,7 @@ def handle_buy_action(event, product_name, quantity):
             "contents": [
                 {"type": "text", "text": f"商品名: {product_name}"},
                 {"type": "text", "text": f"数量: {quantity}つ"},
-                {"type": "text", "text": f"合計: {total_price}円"},
+                {"type": "text", "text": f"合計: {total_price}"},
             ],
         },
         "footer": {
