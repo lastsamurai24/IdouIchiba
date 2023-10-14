@@ -5,7 +5,11 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from dotenv import load_dotenv
-from database_utils import get_products_by_category, get_products_by_partial_category, get_product_price_by_name
+from database_utils import (
+    get_products_by_category,
+    get_products_by_partial_category,
+    get_product_price_by_name,
+)
 from linebot.models import (
     MessageEvent,
     TextMessage,
@@ -15,7 +19,7 @@ from linebot.models import (
     PostbackAction,
     URIAction,
     FlexSendMessage,
-    PostbackEvent
+    PostbackEvent,
 )
 
 load_dotenv()
@@ -85,6 +89,8 @@ def handle_message_combined(event):
 
     # 返信処理
     line_bot_api.reply_message(event.reply_token, reply)
+
+
 def handle_quantity_message(event, quantity, received_msg):
     # ボタンテンプレートの作成
     buttons_template = ButtonsTemplate(
@@ -103,25 +109,51 @@ def handle_quantity_message(event, quantity, received_msg):
 
     # テンプレートメッセージを返す
     line_bot_api.reply_message(event.reply_token, template_message)
+
+
 last_received_message = {}
+user_carts = {}
+
+
+@handler.add(PostbackEvent)
+# カートを模倣する簡易的なデータ構造
+
+
+def add_to_cart(user_id, product_name, quantity):
+    """カートに商品を追加する関数"""
+    cart = user_carts.get(user_id, {})
+    cart[product_name] = cart.get(product_name, 0) + quantity
+    user_carts[user_id] = cart
+
+
+def get_cart_contents(user_id):
+    """カートの中身を取得する関数"""
+    return user_carts.get(user_id, {})
+
+
 @handler.add(PostbackEvent)
 def handle_postback(event):
     data = event.postback.data
-    params = dict([item.split('=') for item in data.split('&')])
+    params = dict([item.split("=") for item in data.split("&")])
     user_id = event.source.user_id
 
-    action = params.get('action')
-    quantity = int(params.get('quantity', 1))
-
+    action = params.get("action")
+    quantity = int(params.get("quantity", 1))
     product_name = last_received_message.get(user_id, "")
 
-    if action == 'buy':
+    if action == "buy":
         handle_buy_action(event, product_name, quantity)
+    elif action == "add":
+        add_to_cart(user_id, product_name, quantity)
+        cart_contents = get_cart_contents(user_id)
+        cart_msg = "\n".join([f"{product}: {qty}" for product, qty in cart_contents.items()])
+        reply_msg = f"{product_name}を{quantity}つカートに追加しました。\n\nカートの中身:\n{cart_msg}"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
 
 
 def handle_buy_action(event, product_name, quantity):
     product_price = get_product_price_by_name(product_name)
-    
+
     if product_price is None:
         app.logger.error(f"Failed to get price for product: {product_name}")
         # ここでユーザーにエラーメッセージを返すなどの処理を追加することもできます。
