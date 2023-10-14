@@ -185,17 +185,17 @@ def handle_view_cart(event, user_id):
             {"type": "text", "text": f"価格: {product_price}円"},
             {"type": "text", "text": f"数量: {qty}つ"},
             {"type": "text", "text": f"小計: {subtotal}円"},
-            {"type": "separator"}  # アイテム間の区切りのためのセパレータ
+            {"type": "separator"}  # 商品間のセパレーターを追加
         ])
 
-    # 最後のセパレータを削除して見た目を整える
+    # 最後のセパレーターを削除して見た目をきれいにする
     receipt_cart_items.pop()
 
     # 最後に合計金額を追加
     total_price = get_cart_total_price(user_id)
     receipt_cart_items.append({"type": "text", "text": f"合計: {total_price}円"})
 
-    # Flexメッセージの内容を作成
+    # フッターを含むFlexメッセージの内容を作成
     receipt_flex_content = {
         "type": "bubble",
         "header": {
@@ -207,6 +207,17 @@ def handle_view_cart(event, user_id):
             "type": "box",
             "layout": "vertical",
             "contents": receipt_cart_items
+        },
+        "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {"type": "postback", "label": "支払う", "data": "action=pay"},
+                    "style": "primary",
+                }
+            ],
         }
     }
 
