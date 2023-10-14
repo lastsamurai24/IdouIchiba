@@ -75,7 +75,7 @@ def handle_message_combined(event):
         products_by_category = get_products_by_category(received_msg)
 
         if products_by_category:
-            reply_msg = "\n".join([f"{product[0]}: {product[1]}" for product in products_by_category])
+            reply_msg = "\n".join([f"{product[0]}: {product[1]}円" for product in products_by_category])
             reply = TextSendMessage(text=reply_msg)
         else:
             products_by_exact_name = get_products_by_partial_category(received_msg)
@@ -143,8 +143,10 @@ def get_cart_total_price(user_id):
     total_price = 0
     for product_name, quantity in cart.items():
         product_price = get_product_price_by_name(product_name)
-        if product_price:
+        if product_price is not None:
             total_price += product_price * quantity
+        else:
+            app.logger.warning(f"Price not found for product: {product_name}")
     return total_price
 
 
