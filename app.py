@@ -167,37 +167,20 @@ def handle_postback(event):
     elif action == "view_cart":
         handle_view_cart(event, user_id)
 
+
 def handle_view_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
     if not cart_contents:
         reply_msg = "カートが空です。"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
     else:
-        cart_items = [{"type": "text", "text": f"{product}: {qty}つ"} for product, qty in cart_contents.items()]
-        total_price = get_cart_total_price(user_id)
-        
-        flex_content = {
-                "type": "bubble",
-                "header": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [{"type": "text", "text": "カートの中身", "weight": "bold", "size": "xl"}]
-                },
-                "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": cart_items + [{"type": "text", "text": f"合計: {total_price}円"}]
-         }  
-        }
-        
-        flex_message = FlexSendMessage(alt_text="カートの中身", contents=flex_content)
-        line_bot_api.reply_message(event.reply_token, flex_message)
+        app.logger.info("Inside the else block for cart display.")
+
 
 def handle_add_action(event, user_id, quantity, product_name):
     add_to_cart(user_id, product_name, quantity)
     reply_msg = f"{product_name}を{quantity}つカートに追加しました。"
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
-
 
 
 def handle_buy_action(event, product_name, quantity):
