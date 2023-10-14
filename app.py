@@ -19,7 +19,7 @@ from linebot.models import (
 )
 from linebot.models import FlexSendMessage
 from database_utils import get_product_price_by_name
-
+from linebot.models import PostbackEvent
 load_dotenv()
 
 app = Flask(__name__)
@@ -104,6 +104,20 @@ def handle_quantity_message(event, quantity, received_msg):
 
     # テンプレートメッセージを返す
     line_bot_api.reply_message(event.reply_token, template_message)
+
+def handle_postback(event):
+    data = event.postback.data
+    params = dict([item.split('=') for item in data.split('&')])
+
+    action = params.get('action')
+    quantity = int(params.get('quantity', 1))
+
+    # ここで、前回のメッセージ（商品名）を取得するロジックが必要です。
+    # 例えば、セッションやデータベースを使用して前回のメッセージを保存しておくなどの方法が考えられます。
+    product_name = "前回のメッセージを取得するロジック"
+
+    if action == 'buy':
+        handle_buy_action(event, product_name, quantity)
 
 
 def handle_buy_action(event, product_name, quantity):
