@@ -171,30 +171,48 @@ def handle_postback(event):
 
 def handle_view_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
-    if not cart_contents:
-        reply_msg = "カートが空です。"
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
     
-    else:
-        cart_items = [{"type": "text", "text": f"{product}: {qty}つ"} for product, qty in cart_contents.items()]
-        total_price = get_cart_total_price(user_id)
-        
-        flex_content = {
-                "type": "bubble",
-                "header": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [{"type": "text", "text": "カートの中身", "weight": "bold", "size": "xl"}]
-                },
-                "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": cart_items + [{"type": "text", "text": f"合計: {total_price}円"}]
-         }  
+    if not cart_contents:
+        # カートが空の場合の既存のコード
+        return
+
+    receipt_cart_items = []
+    for product, qty in cart_contents.items():
+        product_price = get_product_price_by_name(product)
+        subtotal = product_price * qty
+        receipt_cart_items.extend([
+            {"type": "text", "text": f"商品名: {product}"},
+            {"type": "text", "text": f"価格: {product_price}円"},
+            {"type": "text", "text": f"数量: {qty}つ"},
+            {"type": "text", "text": f"小計: {subtotal}円"},
+            {"type": "separator"}  # アイテム間の区切りのためのセパレータ
+        ])
+
+    # 最後のセパレータを削除して見た目を整える
+    receipt_cart_items.pop()
+
+    # 最後に合計金額を追加
+    total_price = get_cart_total_price(user_id)
+    receipt_cart_items.append({"type": "text", "text": f"合計: {total_price}円"})
+
+    # Flexメッセージの内容を作成
+    receipt_flex_content = {
+        "type": "bubble",
+        "header": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [{"type": "text", "text": "カートのレシート", "weight": "bold", "size": "xl"}]
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": receipt_cart_items
         }
-        
-        flex_message = FlexSendMessage(alt_text="カートの中身", contents=flex_content)
-        line_bot_api.reply_message(event.reply_token, flex_message)
+    }
+
+    flex_message = FlexSendMessage(alt_text="カートのレシート", contents=receipt_flex_content)
+    line_bot_api.reply_message(event.reply_token, flex_message)
+
 
 def handle_add_action(event, user_id, quantity, product_name):
     add_to_cart(user_id, product_name, quantity)
