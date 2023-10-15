@@ -153,21 +153,43 @@ def get_cart_total_price(user_id):
 
 
 @handler.add(PostbackEvent)
+# 既存のPostbackイベントのハンドラ
+@handler.add(PostbackEvent)
 def handle_postback(event):
-    data = event.postback.data
-    params = dict([item.split("=") for item in data.split("&")])
-    user_id = event.source.user_id
+    postback_data = event.postback.data
 
-    action = params.get("action")
-    quantity = int(params.get("quantity", 1))
-    product_name = last_received_message.get(user_id, "")
+    # Postbackデータからaction, product, およびquantityを取得
+    params = dict([item.split('=') for item in postback_data.split('&')])
+    action = params.get('action')
+    product = params.get('product')
+    quantity = int(params.get('quantity', 0))
 
-    if action == "buy":
-        handle_buy_action(event, product_name, quantity)
-    elif action == "add":
-        handle_add_action(event, user_id, quantity, product_name)
-    elif action == "view_cart":
-        modified_handle_view_cart(event, user_id)
+    if action == "increase":
+        # 数量を1つ増やす
+        update_cart_quantity(product, quantity + 1)
+    elif action == "decrease" and quantity > 0:
+        # 数量を1つ減らす
+        update_cart_quantity(product, quantity - 1)
+
+    # 更新されたカートの内容を表示
+    send_updated_cart(event, event.source.user_id)
+
+def send_updated_cart(event, user_id):
+    cart_contents = get_cart_contents(user_id)
+    if not cart_contents:
+        # カートが空の場合のメッセージを送信
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="カートは空です。"))
+        return
+
+    # カートの内容を表示するためのメッセージを作成・送信
+    # ここで modified_handle_view_cart 関数のようなロジックを利用して、
+    # Flexメッセージを作成・送信することができます。
+
+def update_cart_quantity(product_name, new_quantity):
+    # この関数はカート内の指定された商品の数量を更新するためのものです。
+    # 実際のデータベースやストレージの更新ロジックに応じて、この関数の中身を実装してください。
+    pass
+
 
 def modified_handle_view_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
