@@ -22,7 +22,7 @@ def handle_message_combined(event):
     # Check if received message is a number (quantity)
     if received_msg.isdigit():
         reply_msg = handle_quantity_message(event, int(received_msg))
-    else:
+    else: 
         # First, perform the original handle_message process
         products_by_category = get_products_by_category(received_msg)
         
