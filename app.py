@@ -167,9 +167,9 @@ def handle_postback(event):
     elif action == "add":
         handle_add_action(event, user_id, quantity, product_name)
     elif action == "view_cart":
-        handle_view_cart(event, user_id)
+        modified_handle_view_cart(event, user_id)
 
-def handle_view_cart(event, user_id):
+def modified_handle_view_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
     
     if not cart_contents:
@@ -180,10 +180,44 @@ def handle_view_cart(event, user_id):
     for product, qty in cart_contents.items():
         product_price = get_product_price_by_name(product)
         subtotal = product_price * qty
+        
+        # Add the buttons for increasing and decreasing the quantity
+        quantity_buttons = {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {
+                        "type": "postback",
+                        "label": "-",
+                        "data": f"action=decrease&product={product}&quantity={qty}"
+                    },
+                    "style": "primary",
+                    "color": "#ff0000"
+                },
+                {
+                    "type": "text",
+                    "text": f"{qty}つ",
+                    "gravity": "center"
+                },
+                {
+                    "type": "button",
+                    "action": {
+                        "type": "postback",
+                        "label": "+",
+                        "data": f"action=increase&product={product}&quantity={qty}"
+                    },
+                    "style": "primary",
+                    "color": "#00ff00"
+                }
+            ]
+        }
+        
         receipt_cart_items.extend([
             {"type": "text", "text": f"商品名: {product}"},
             {"type": "text", "text": f"価格: {product_price}円"},
-            {"type": "text", "text": f"数量: {qty}つ"},
+            quantity_buttons,
             {"type": "text", "text": f"小計: {subtotal}円"},
             {"type": "separator"}  # 商品間のセパレーターを追加
         ])
@@ -223,6 +257,10 @@ def handle_view_cart(event, user_id):
 
     flex_message = FlexSendMessage(alt_text="カートのレシート", contents=receipt_flex_content)
     line_bot_api.reply_message(event.reply_token, flex_message)
+
+# Since the function refers to external methods, we won't be able to execute it here directly.
+# We are providing the modified function as a code snippet.
+
 
 
 def handle_add_action(event, user_id, quantity, product_name):
