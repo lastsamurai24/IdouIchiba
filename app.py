@@ -1,5 +1,6 @@
 import os
 import logging
+import sqlite3
 from logging.handlers import RotatingFileHandler
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -26,6 +27,7 @@ load_dotenv()
 
 # ... [残りのコードは変更なし]
 
+DATABASE_PATH = '' 
 
 app = Flask(__name__)
 
@@ -163,16 +165,14 @@ def handle_postback(event):
     action = params.get('action')
     product = params.get('product')
     quantity = int(params.get('quantity', 0))
-
     if action == "increase":
         # 数量を1つ増やす
-        update_cart_quantity(product, quantity + 1)
+        update_cart_quantity(event.source.user_id, product, quantity + 1)
     elif action == "decrease" and quantity > 0:
         # 数量を1つ減らす
-        update_cart_quantity(product, quantity - 1)
-
+        update_cart_quantity(event.source.user_id, product, quantity - 1)
     # 更新されたカートの内容を表示
-    send_updated_cart(event, event.source.user_id)
+        send_updated_cart(event, event.source.user_nid)
 
 def send_updated_cart(event, user_id):
     cart_contents = get_cart_contents(user_id)
@@ -185,10 +185,37 @@ def send_updated_cart(event, user_id):
     # ここで modified_handle_view_cart 関数のようなロジックを利用して、
     # Flexメッセージを作成・送信することができます。
 
-def update_cart_quantity(product_name, new_quantity):
-    # この関数はカート内の指定された商品の数量を更新するためのものです。
-    # 実際のデータベースやストレージの更新ロジックに応じて、この関数の中身を実装してください。
-    pass
+def update_cart_quantity(user_id, product_name, new_quantity):
+    # データベースに接続
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
+
+    # 指定されたuser_idとproduct_nameに一致するエントリの数量を取得
+    cursor.execute("""
+        SELECT quantity FROM cart WHERE user_id = ? AND product_name = ?
+    """, (user_id, product_name))
+
+    result = cursor.fetchone()
+
+    if result:
+        # 既にエントリが存在する場合は、数量を更新
+        cursor.execute("""
+            UPDATE cart
+            SET quantity = ?
+            WHERE user_id = ? AND product_name = ?
+        """, (new_quantity, user_id, product_name))
+    else:
+        # エントリが存在しない場合は、新しいエントリを追加
+        cursor.execute("""
+            INSERT INTO cart (user_id, product_name, quantity)
+            VALUES (?, ?, ?)
+        """, (user_id, product_name, new_quantity))
+
+    # 変更をコミット
+    conn.commit()
+
+    # データベース接続を閉じる
+    conn.close()
 
 
 def modified_handle_view_cart(event, user_id):
